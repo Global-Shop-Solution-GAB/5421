@@ -1,0 +1,53 @@
+Program.Sub.Preflight.Start
+V.Global.sHTML.Declare(String)
+F.Data.DataTable.Create("HTMLFormat",True)
+F.Data.DataTable.AddColumn("HTMLFormat","DATA","String","")
+'No format
+F.Data.DataTable.AddColumn("HTMLFormat","STANDARD","String")
+'Color Classes
+F.Data.DataTable.AddColumn("HTMLFormat","RED","String")
+F.Data.DataTable.AddColumn("HTMLFormat","GREEN","String")
+F.Data.DataTable.AddColumn("HTMLFormat","ORANGE","String")
+F.Data.DataTable.AddColumn("HTMLFormat","YELLOW","String")
+F.Data.DataTable.AddColumn("HTMLFormat","MIST","String")
+F.Data.DataTable.AddColumn("HTMLFormat","BLUE","String")
+F.Data.DataTable.AddColumn("HTMLFormat","GRAY","String")
+F.Data.DataTable.AddColumn("HTMLFormat","CYAN","String")
+F.Data.DataTable.AddColumn("HTMLFormat","MAGENTA","String")
+'Specific Columns
+F.Data.DataTable.AddColumn("HTMLFormat","QTY","String")
+F.Data.DataTable.AddColumn("HTMLFormat","STRINGSF","String")
+F.Data.DataTable.AddColumn("HTMLFormat","EMPTY","String")
+
+F.Data.DataTable.AddRow("HTMLFormat","STANDARD","style="border: 1px solid black; border-collapse: collapse; padding: 1px;">","RED"," class="red-cells">","GREEN"," class="green-cells">","ORANGE"," class="orange-cells">","YELLOW"," class="yellow-cells">","MIST"," class="mist-cells">","BLUE"," class="blue-cells">","GRAY"," class="gray-cells">","CYAN"," class="cyan-cells">","MAGENTA"," class="magenta-cells">","QTY"," style="border: 1px solid black; border-collapse: collapse; padding: 1px; text-align:right;">","STRINGSF"," style="border: 1px solid black; border-collapse: collapse; padding: 1px; text-align:left;">","EMPTY"," style="border: 1px solid black; border-collapse: collapse; padding: 1px;">")
+Program.Sub.Preflight.End
+
+Program.Sub.ConvertDTToHTML.Start
+'Args: DT, DV
+V.Local.sError.Declare(String)
+V.Local.sInnerDelim.Declare(String)
+V.Local.sOuterDelim.Declare(String)
+F.Intrinsic.Control.Try
+
+'Check that DT and DV exist
+F.Intrinsic.Control.If(V.DataTable.[V.Args.DT].Exists,=,False)
+	f.Intrinsic.String.Build("DataTable {0} could not be found in the Local Scope. Please check that the DataTable {0} has a Global Scope and that the DataTable name is correct when calling {1}",V.Args.DT,V.Ambient.CurrentSubroutine,V.Local.sError)
+	F.Intrinsic.Control.RaiseError(1,V.Local.sError)
+F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.If(V.DataView.[V.Args.DT]![V.Args.DV].Exists,=,False)
+	f.Intrinsic.String.Build("DataView {0} could not be found in the Local Scope. Please check that the DataTable {1} has a Global Scope and that the DataTable name is correct when calling {2}",V.Args.DV,V.Args.DT,V.Ambient.CurrentSubroutine,V.Local.sError)
+	F.Intrinsic.Control.RaiseError(1,V.Local.sError)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.String.Build("</td>{0}{1}{1}<td",V.Ambient.NewLine,V.Ambient.Tab,V.Local.sInnerDelim)
+F.Intrinsic.String.Build("</td>{0}{1}</tr>{0}{1}<tr>{0}{1}{1}<td",V.Ambient.NewLine,V.Ambient.Tab,V.Local.sOuterDelim)
+'Extract data from DTs
+F.Data.DataView.ToString(V.Args.DT,V.Args.DV,V.Local.sInnerDelim,V.Local.sOuterDelim,V.Global.sHTML)
+F.Intrinsic.String.Build("<table style="border: 1px solid black; border-collapse: collapse; padding: 1px; ">{1}{2}<tr>{1}{2}{2}<td{0}</td>{1}{2}</tr>{1}</table>",V.Global.sHTML,V.Ambient.NewLine,V.Ambient.Tab,V.Global.sHTML)
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.EndTry
+Program.Sub.ConvertDTToHTML.End
